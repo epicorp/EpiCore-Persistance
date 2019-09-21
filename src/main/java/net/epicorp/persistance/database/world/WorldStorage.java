@@ -13,8 +13,6 @@ import org.bukkit.plugin.Plugin;
 import java.awt.Point;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -93,6 +91,11 @@ public class WorldStorage implements IWorldStorage {
 	public <T extends Persistent> void setData(T data, int x, int y, int z) {
 		IChunkData chunkData = getChunkData(x, z);
 		chunkData.setData(data, x & 15, y, z & 15);
+	}
+
+	@Override
+	public <T extends Persistent> T removeData(int x, int y, int z) {
+		return getChunkData(x, z).removeData(x & 15, y, z & 15);
 	}
 
 	/**

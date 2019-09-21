@@ -11,7 +11,6 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 public class PersistenceRegistry implements IPersistenceRegistry {
 
@@ -106,4 +105,11 @@ public class PersistenceRegistry implements IPersistenceRegistry {
 	public Persistent newInstance(int id) {
 		return instantiators.get(ids.inverse().get(id)).get();
 	}
+
+	@Override
+	public <T extends Persistent> T newInstance(Class<T> _class) {
+		return (T) instantiators.get(_class).get();
+	}
+
+
 }

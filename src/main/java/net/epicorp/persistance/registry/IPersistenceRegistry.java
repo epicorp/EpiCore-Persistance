@@ -20,4 +20,12 @@ public interface IPersistenceRegistry {
 	 * @return
 	 */
 	Persistent newInstance(int id);
+
+	/**
+	 * creates a new instance of the class using the provided initializer
+	 * @param _class the class of the object
+	 * @param <T>
+	 * @return a new persistent instance
+	 */
+	<T extends Persistent> T newInstance(Class<T> _class);
 }

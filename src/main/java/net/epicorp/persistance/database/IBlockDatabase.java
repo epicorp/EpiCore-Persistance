@@ -3,9 +3,7 @@ package net.epicorp.persistance.database;
 import net.epicorp.persistance.Persistent;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkLoadEvent;
 import java.util.function.BiConsumer;
 
 public interface IBlockDatabase extends Listener {
@@ -42,6 +40,17 @@ public interface IBlockDatabase extends Listener {
 	<T extends Persistent> void setData(T data, World world, int x, int y, int z);
 
 	/**
+	 * removes the data in the given location
+	 * @param world the world
+	 * @param x the block's x
+	 * @param y the block's y
+	 * @param z the block's z
+	 * @param <T> the type of data expected at that location
+	 * @return the data formerly associated with that location
+	 */
+	<T extends Persistent> T removeData(World world, int x, int y, int z);
+
+	/**
 	 * iterate through all the stored data in the database
 	 * @param data consumer
 	 */
@@ -67,6 +76,16 @@ public interface IBlockDatabase extends Listener {
 	 */
 	default <T extends Persistent> void setData(T data, Location location) {
 		setData(data, location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+	}
+
+	/**
+	 * removes the data at the given location
+	 * @param location the block's location
+	 * @param <T> the datatype expected at that location
+	 * @return
+	 */
+	default <T extends Persistent> T removeData(Location location) {
+		return removeData(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 	}
 
 

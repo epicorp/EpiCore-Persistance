@@ -27,6 +27,16 @@ public interface IWorldStorage {
 	 */
 	<T extends Persistent> void setData(T data, int x, int y, int z);
 
+	/**
+	 * removes the data at that position
+	 * @param x the block x
+	 * @param y the block y
+	 * @param z the block z
+	 * @param <T> the expected datatype of the object in that location
+	 * @return null or the former data associated with the location
+	 */
+	<T extends Persistent> T removeData(int x, int y, int z);
+
 
 	/**
 	 * load the chunk from storage

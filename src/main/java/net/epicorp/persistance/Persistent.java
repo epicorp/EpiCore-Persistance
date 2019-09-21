@@ -23,7 +23,7 @@ public interface Persistent {
 	void writeTo(DataOutputStream output) throws IOException;
 
 	/**
-	 * Called when the persistent data is deleted, or is being saved to the disk
+	 * Called when the persistent data is deleted, or is being saved to the disk, here you should detach listeners, and whatnot
 	 */
 	void close();
 

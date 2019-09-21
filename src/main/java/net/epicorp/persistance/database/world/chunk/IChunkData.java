@@ -36,4 +36,14 @@ public interface IChunkData {
 	 * @param remove if the chunk should use the {@link Persistent#close()} before serializing it
 	 */
 	void save(boolean remove);
+
+	/**
+	 * removes the data in the given location
+	 * @param x 0-15
+	 * @param y 0-256
+	 * @param z 0-15
+	 * @param <T> the datatype expected at the given location
+	 * @return null or the data formerly associated with the position
+	 */
+	<T extends Persistent> T removeData(int x, int y, int z);
 }

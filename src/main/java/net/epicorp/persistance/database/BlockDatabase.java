@@ -4,14 +4,10 @@ import net.epicorp.persistance.Persistent;
 import net.epicorp.persistance.database.world.IWorldStorage;
 import net.epicorp.persistance.database.world.WorldStorage;
 import net.epicorp.persistance.registry.IPersistenceRegistry;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.Plugin;
@@ -20,8 +16,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
+/**
+ * register as spigot listener ree
+ */
 public class BlockDatabase implements IBlockDatabase {
 	protected Map<UUID, IWorldStorage> serverData;
 	protected BiFunction<IPersistenceRegistry, World, IWorldStorage> newWorldStorage;
@@ -58,6 +56,11 @@ public class BlockDatabase implements IBlockDatabase {
 	@Override
 	public <T extends Persistent> void setData(T data, World world, int x, int y, int z) {
 		getWorld(world).setData(data, x, y, z);
+	}
+
+	@Override
+	public <T extends Persistent> T removeData(World world, int x, int y, int z) {
+		return getWorld(world).removeData(x, y, z);
 	}
 
 	@Override

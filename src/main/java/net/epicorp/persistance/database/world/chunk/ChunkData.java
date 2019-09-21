@@ -9,8 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import java.awt.Point;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
@@ -102,6 +100,13 @@ public class ChunkData implements IChunkData {
 				}
 			}
 		}
+	}
+
+	@Override
+	public <T extends Persistent> T removeData(int x, int y, int z) {
+		Persistent persistent = data.remove(convert(x, y, z));
+		persistent.close();
+		return (T) persistent;
 	}
 
 	/**
