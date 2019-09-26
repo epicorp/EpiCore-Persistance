@@ -15,14 +15,14 @@ import java.util.function.BiConsumer;
  * chunk file format
  * int x // x coor of chunk
  * int y // y coor of chunk
- *
+ * <p>
  * int len // number of entries
- *  [ // array of entries
- *      {
- *          short key
- *          persistent data
- *      }
- *  ]
+ * [ // array of entries
+ * {
+ * short key
+ * persistent data
+ * }
+ * ]
  */
 public class ChunkData implements IChunkData {
 	protected final File file;
@@ -31,6 +31,7 @@ public class ChunkData implements IChunkData {
 	protected final Point point;
 	protected final World world;
 
+
 	public ChunkData(World world, IPersistenceRegistry registry, Point point, File parent, Short2ObjectMap<Persistent> data) {
 		this.registry = registry;
 		this.file = new File(parent, String.format("[%d, %d].data", point.x, point.y));
@@ -38,16 +39,16 @@ public class ChunkData implements IChunkData {
 		this.point = point;
 		this.world = world;
 
-		if(file.exists()) {
+		if (file.exists()) {
 			try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-				if(dis.readInt() != point.x || dis.readInt() != point.y)
+				if (dis.readInt() != point.x || dis.readInt() != point.y)
 					throw new FileCorruptedException("Chunk does not belong to the correct point!");
 				int len = dis.readInt();
 
-				for(int x = 0; x < len; x++) {
+				for (int x = 0; x < len; x++) {
 					short key = dis.readShort();
 					Persistent persistent = registry.newInstance(dis.readInt());
-					if(persistent == null)
+					if (persistent == null)
 						throw new FileCorruptedException("Persistent with unknown id found in file, likely the result of removing a plugin that relies on EpiCore, or unregistering an object during runtime");
 					persistent.load(dis);
 					data.put(key, persistent);
@@ -70,7 +71,7 @@ public class ChunkData implements IChunkData {
 	@Override
 	public <T extends Persistent> void setData(T data, int x, int y, int z) {
 		Persistent former = this.data.put(convert(x, y, z), data);
-		if(former != null) former.close(); // release listeners, update lists, etc.
+		if (former != null) former.close(); // release listeners, update lists, etc.
 	}
 
 	@Override
@@ -80,26 +81,27 @@ public class ChunkData implements IChunkData {
 
 	@Override
 	public void save(boolean write) {
-		if(file.exists()) { // if data is gon :crab:
-			if(data.size() == 0 && !file.delete())
-				throw new FileCorruptedException("Chunk file was unable to be deleted!");
-			else {
-				try(DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
-					dos.writeInt(point.x); // x and y of chunk
-					dos.writeInt(point.y);
+		if (data.size() != 0) { // if chonk has data
+			File parent = file.getParentFile();
+			if (!parent.exists() && !file.mkdirs()) // if parent dir does not exist, make new
+				throw new FileCorruptedException(parent+" was unable to be created!"); // fail
 
-					dos.writeInt(data.size()); // size of data
+			try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) { // open sesemeemee
+				dos.writeInt(point.x); // x and y of chunk
+				dos.writeInt(point.y);
 
-					for(Persistent entry : data.values()) { // data in file
-						if(write) entry.close(); // clean entities
-						dos.writeInt(registry.getIntegerKey(entry));
-						entry.writeTo(dos);
-					}
-				} catch (IOException e) {
-					throw new FileCorruptedException("Chunk file was unable to be opened : " + file);
+				dos.writeInt(data.size()); // size of data
+
+				for (Persistent entry : data.values()) { // data in file
+					if (write) entry.close(); // clean entities
+					dos.writeInt(registry.getIntegerKey(entry)); // get persistent key thing
+					entry.writeTo(dos); // write to file
 				}
+			} catch (IOException e) {
+				throw new FileCorruptedException("Chunk file was unable to be saved : " + file, e); // fail
 			}
-		}
+		} else if(file.exists() && !file.delete()) // if chonk has no data and there was data formerly associated with this chonk, delete it
+			throw new FileCorruptedException(file + " Chunk file was unable to be deleted!");
 	}
 
 	@Override
@@ -129,6 +131,7 @@ public class ChunkData implements IChunkData {
 
 	/**
 	 * converts relative chunk coordinates into a block key
+	 *
 	 * @param x [0-15]
 	 * @param y [0-255]
 	 * @param z [0-15]

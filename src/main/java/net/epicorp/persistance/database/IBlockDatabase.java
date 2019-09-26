@@ -11,12 +11,12 @@ public interface IBlockDatabase extends Listener {
 	/**
 	 * saves all the data in the world storage
 	 * Hint: {@link org.bukkit.event.server.PluginDisableEvent}
-	 * @param _final if the server is shutting down, this should be true, if autosaving, it should be false
+	 * @param _final if the server is shutting down, this should be true, if auto-saving, it should be false
 	 */
 	void save(boolean _final);
 
 	/**
-	 * retrieves the data at the given location, or null if none exists, there is no guarrentee that the data will or will
+	 * retrieves the data at the given location, or null if none exists, there is no guarantee that the data will or will
 	 * not be cloned
 	 * @see IBlockDatabase#setData(Persistent, Location)
 	 * @param world the world in which this data lies
