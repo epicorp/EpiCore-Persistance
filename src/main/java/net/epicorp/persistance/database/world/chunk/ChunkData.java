@@ -38,7 +38,6 @@ public class ChunkData implements IChunkData {
 		this.data = data;
 		this.point = point;
 		this.world = world;
-
 		if (file.exists()) {
 			try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
 				if (dis.readInt() != point.x || dis.readInt() != point.y)
@@ -47,9 +46,10 @@ public class ChunkData implements IChunkData {
 
 				for (int x = 0; x < len; x++) {
 					short key = dis.readShort();
-					Persistent persistent = registry.newInstance(dis.readInt());
+					int read = dis.readInt();
+					Persistent persistent = registry.newInstance(read);
 					if (persistent == null)
-						throw new FileCorruptedException("Persistent with unknown id found in file, likely the result of removing a plugin that relies on EpiCore, or unregistering an object during runtime");
+						throw new FileCorruptedException("Persistent with unknown id <" + read + "> found in file, likely the result of removing a plugin that relies on EpiCore, or unregistering an object during runtime");
 					persistent.load(dis);
 					data.put(key, persistent);
 				}
@@ -83,31 +83,33 @@ public class ChunkData implements IChunkData {
 	public void save(boolean write) {
 		if (data.size() != 0) { // if chonk has data
 			File parent = file.getParentFile();
-			if (!parent.exists() && !file.mkdirs()) // if parent dir does not exist, make new
-				throw new FileCorruptedException(parent+" was unable to be created!"); // fail
-
+			if (!parent.exists() && !parent.mkdirs()) // if parent dir does not exist, make new
+				throw new FileCorruptedException(parent + " was unable to be created!"); // fail
 			try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) { // open sesemeemee
 				dos.writeInt(point.x); // x and y of chunk
 				dos.writeInt(point.y);
 
 				dos.writeInt(data.size()); // size of data
 
-				for (Persistent entry : data.values()) { // data in file
+
+				for (Short2ObjectMap.Entry<Persistent> pair : data.short2ObjectEntrySet()) { // data in file
+					Persistent entry = pair.getValue();
 					if (write) entry.close(); // clean entities
+					dos.writeShort(pair.getShortKey());
 					dos.writeInt(registry.getIntegerKey(entry)); // get persistent key thing
 					entry.writeTo(dos); // write to file
 				}
 			} catch (IOException e) {
 				throw new FileCorruptedException("Chunk file was unable to be saved : " + file, e); // fail
 			}
-		} else if(file.exists() && !file.delete()) // if chonk has no data and there was data formerly associated with this chonk, delete it
+		} else if (file.exists() && !file.delete()) // if chonk has no data and there was data formerly associated with this chonk, delete it
 			throw new FileCorruptedException(file + " Chunk file was unable to be deleted!");
 	}
 
 	@Override
 	public <T extends Persistent> T removeData(int x, int y, int z) {
 		Persistent persistent = data.remove(convert(x, y, z));
-		persistent.close();
+		if (persistent != null) persistent.close();
 		return (T) persistent;
 	}
 

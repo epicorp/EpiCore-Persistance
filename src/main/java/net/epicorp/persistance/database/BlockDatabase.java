@@ -4,10 +4,12 @@ import net.epicorp.persistance.Persistent;
 import net.epicorp.persistance.database.world.IWorldStorage;
 import net.epicorp.persistance.database.world.WorldStorage;
 import net.epicorp.persistance.registry.IPersistenceRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.Plugin;
@@ -49,6 +51,16 @@ public class BlockDatabase implements IBlockDatabase {
 	}
 
 	@Override
+	public void init() {
+		Bukkit.getWorlds().forEach(w -> {for (Chunk chunk : w.getLoadedChunks()) chunkLoad(new ChunkLoadEvent(chunk, false));});
+	}
+
+	@Override
+	public void clear() {
+		serverData.forEach((u, w) -> w.clear());
+	}
+
+	@Override
 	public <T extends Persistent> T getData(World world, int x, int y, int z) {
 		return getWorld(world).getData(x, y, z);
 	}
@@ -72,16 +84,15 @@ public class BlockDatabase implements IBlockDatabase {
 		return serverData.computeIfAbsent(world.getUID(), (u) -> newWorldStorage.apply(persistenceRegistry, world));
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void chunkLoad(ChunkLoadEvent event) {
 		Chunk chunk = event.getChunk();
 		getWorld(event.getWorld()).loadChunk(chunk.getX(), chunk.getZ());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void chunkUnload(ChunkUnloadEvent event) {
 		Chunk chunk = event.getChunk();
 		getWorld(event.getWorld()).unloadChunk(chunk.getX(), chunk.getZ());
 	}
-
 }

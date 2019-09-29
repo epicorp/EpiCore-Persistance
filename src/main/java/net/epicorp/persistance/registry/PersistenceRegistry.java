@@ -7,12 +7,12 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class PersistenceRegistry implements IPersistenceRegistry {
+public class PersistenceRegistry implements IRegisterableRegistry {
 
 	private BiMap<Class<? extends Persistent>, Integer> ids = HashBiMap.create();
 	private Map<Class<? extends Persistent>, Supplier<Persistent>> instantiators = new HashMap<>();
@@ -29,6 +29,7 @@ public class PersistenceRegistry implements IPersistenceRegistry {
 				configuration.load(file);
 				configuration.getKeys(false).forEach(s -> {
 					try {
+						s = s.replace('!', '.');
 						ids.put((Class<? extends Persistent>) Class.forName(s), configuration.getInt(s));
 					} catch (ClassNotFoundException e) {
 						throw new RuntimeException("A class was not found", e);
@@ -48,40 +49,20 @@ public class PersistenceRegistry implements IPersistenceRegistry {
 	 */
 	public void save() throws IOException {
 		YamlConfiguration configuration = new YamlConfiguration();
-		ids.forEach((c, i) -> configuration.set(c.getName(), i));
+		ids.forEach((c, i) -> configuration.set(c.getName().replace('.', '!'), i));
 		configuration.save(file);
 	}
 
-	/**
-	 * register a persistent class with a custom instantiation function
-	 *
-	 * @param _class
-	 * @param instantiation
-	 */
-	public void register(Class<? extends Persistent> _class, Supplier<Persistent> instantiation) {
-		ids.forcePut(_class, firstOpen());
-		instantiators.put(_class, instantiation);
+	@Override
+	public void iterate(Consumer<Integer> idIterator) {
+		ids.forEach((c, i) -> idIterator.accept(i));
 	}
 
-	/**
-	 * register a persistent class with the default instantiation function
-	 *
-	 * @param _class
-	 */
-	public void register(Class<? extends Persistent> _class) {
-		try {
-			Constructor<Persistent> constructor = (Constructor<Persistent>) _class.getConstructor();
-			constructor.setAccessible(true);
-			register(_class, () -> {
-				try {
-					return constructor.newInstance();
-				} catch (ReflectiveOperationException e) {
-					throw new RuntimeException(e);
-				}
-			});
-		} catch (ReflectiveOperationException e) {
-			throw new RuntimeException(e);
-		}
+	@Override
+	public void register(Class<? extends Persistent> _class, Supplier<Persistent> instantiation) {
+		if(!ids.containsKey(_class))
+			ids.put(_class, firstOpen());
+		instantiators.put(_class, instantiation);
 	}
 
 	/**
@@ -103,7 +84,7 @@ public class PersistenceRegistry implements IPersistenceRegistry {
 
 	@Override
 	public Persistent newInstance(int id) {
-		return instantiators.get(ids.inverse().get(id)).get();
+		return instantiators.getOrDefault(ids.inverse().get(id), () -> null).get();
 	}
 
 	@Override

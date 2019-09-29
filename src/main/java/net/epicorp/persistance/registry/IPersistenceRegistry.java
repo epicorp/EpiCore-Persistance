@@ -1,6 +1,8 @@
 package net.epicorp.persistance.registry;
 
 import net.epicorp.persistance.Persistent;
+import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
  * A registry that can assign an id to a persistent's class and retrieve it at a later time, this class is used for serialization of
@@ -28,4 +30,16 @@ public interface IPersistenceRegistry {
 	 * @return a new persistent instance
 	 */
 	<T extends Persistent> T newInstance(Class<T> _class);
+
+	/**
+	 * save the config file
+	 * @throws IOException
+	 */
+	void save() throws IOException;
+
+	/**
+	 * loop through all ids in the registry
+	 * @param idIterator
+	 */
+	void iterate(Consumer<Integer> idIterator);
 }

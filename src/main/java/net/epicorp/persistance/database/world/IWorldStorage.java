@@ -63,4 +63,9 @@ public interface IWorldStorage {
 	 * @param close true if the server is shutting down (if should call {@link Persistent#close()})
 	 */
 	void saveAll(boolean close);
+
+	/**
+	 * removes all data from the world
+	 */
+	void clear();
 }

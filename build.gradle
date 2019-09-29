@@ -12,23 +12,28 @@ repositories {
         name = 'spigotmc-repo'
         url = 'https://hub.spigotmc.org/nexus/content/groups/public/'
     }
-
     maven {
         name = 'codemc-repo'
         url = 'https://repo.codemc.org/repository/maven-public/'
     }
 }
 
+tasks.withType(Jar) {
+    destinationDir = file("$rootDir.parentFile/output")
+}
+
 configurations { extraLibs }
 
 dependencies {
     compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
-    extraLibs "it.unimi.dsi:fastutil:8.3.0"
 
+    extraLibs "it.unimi.dsi:fastutil:8.3.0"
     compile "it.unimi.dsi:fastutil:8.3.0"
+
     compile "de.tr7zw:item-nbt-api:2.0.0"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
+    compile fileTree(dir: "$rootDir.parentFile/output", include: ['*.jar'])
 }
 
 jar {

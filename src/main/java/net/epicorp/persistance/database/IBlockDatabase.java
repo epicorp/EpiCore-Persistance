@@ -4,16 +4,27 @@ import net.epicorp.persistance.Persistent;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
 import java.util.function.BiConsumer;
 
 public interface IBlockDatabase extends Listener {
 
 	/**
 	 * saves all the data in the world storage
-	 * Hint: {@link org.bukkit.event.server.PluginDisableEvent}
+	 * Hint: {@link org.bukkit.event.server.PluginDisableEvent} or {@link JavaPlugin#onDisable()}
 	 * @param _final if the server is shutting down, this should be true, if auto-saving, it should be false
 	 */
 	void save(boolean _final);
+
+	/**
+	 * initalizes the block database, such as loading data for already loaded chunks
+	 */
+	void init();
+
+	/**
+	 * removes all data from the database
+	 */
+	void clear();
 
 	/**
 	 * retrieves the data at the given location, or null if none exists, there is no guarantee that the data will or will
