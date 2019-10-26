@@ -29,8 +29,7 @@ public class PersistenceRegistry implements IRegisterableRegistry {
 				configuration.load(file);
 				configuration.getKeys(false).forEach(s -> {
 					try {
-						s = s.replace('!', '.');
-						ids.put((Class<? extends Persistent>) Class.forName(s), configuration.getInt(s));
+						ids.put((Class<? extends Persistent>) Class.forName(s.replace('!', '.')), configuration.getInt(s));
 					} catch (ClassNotFoundException e) {
 						throw new RuntimeException("A class was not found", e);
 					}
