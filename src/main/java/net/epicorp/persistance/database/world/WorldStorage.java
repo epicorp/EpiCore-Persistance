@@ -29,7 +29,7 @@ public class WorldStorage implements IWorldStorage {
 	protected Long2ObjectLinkedOpenHashMap<IChunkData> cache = new Long2ObjectLinkedOpenHashMap<>();
 
 	public WorldStorage(IPersistenceRegistry registry, World world, Long2ObjectMap<IChunkData> worldData, Function<Point, IChunkData> newChunk) {
-		worldID = world.getUID();
+		this.worldID = world.getUID();
 		this.worldData = worldData;
 		this.newChunk = newChunk;
 		this.registry = registry;
@@ -38,61 +38,59 @@ public class WorldStorage implements IWorldStorage {
 	public WorldStorage(IPersistenceRegistry registry, String name, Plugin plugin, World world) {
 		this(registry, world, new Long2ObjectOpenHashMap<>(), null); // assigned after
 
-		parent = new File(plugin.getDataFolder(), name+"_"+world.getName()); // parent file for default impl
-		this.newChunk = (p) -> new ChunkData(world, registry, p, parent); // default impl needs parent file
+		this.parent = new File(plugin.getDataFolder(), name+"_"+world.getName()); // parent file for default impl
+		this.newChunk = (p) -> new ChunkData(world, registry, p, this.parent); // default impl needs parent file
 	}
 	@Override
 	public void loadChunk(int x, int z) {
-		getChunkData(x, z); // autoloads chunks as well
+		this.getChunkData(x, z); // autoloads chunks as well
 	}
 
 	@Override
 	public void unloadChunk(int x, int z) {
-		long key = getKey(x, z);
-		IChunkData data = worldData.remove(key);
-		if(data != null)
-			cache.put(key, data);
-		while (cache.size() > cacheSize)
-			If.nonNull(cache.removeLast(), c -> c.save(true));
+		long key = this.getKey(x, z);
+		IChunkData data = this.worldData.remove(key);
+		if(data != null) this.cache.put(key, data);
+		while (this.cache.size() > this.cacheSize)
+			If.nonNull(this.cache.removeLast(), c -> c.save(true));
 	}
 
 	@Override
 	public void forEach(BiConsumer<Location, Persistent> data) {
-		worldData.forEach((l, c) -> If.nonNull(c, () -> c.forEach(data)));
-		cache.forEach((l, c) -> If.nonNull(c, () -> c.forEach(data)));
+		this.worldData.forEach((l, c) -> If.nonNull(c, () -> c.forEach(data)));
+		this.cache.forEach((l, c) -> If.nonNull(c, () -> c.forEach(data)));
 	}
 
 	@Override
 	public void saveAll(boolean close) {
-		worldData.forEach((l, c) -> If.nonNull(c, () -> c.save(close)));
-		cache.forEach((l, c) -> If.nonNull(c, () -> c.save(close)));
+		this.worldData.forEach((l, c) -> If.nonNull(c, () -> c.save(close)));
+		this.cache.forEach((l, c) -> If.nonNull(c, () -> c.save(close)));
 	}
 
 	@Override
 	public void clear() {
-		forEach((l, w) -> w.close());
-		worldData.clear();
-		cache.clear();
-		if(parent != null)
-			parent.delete();
+		this.forEach((l, w) -> w.close());
+		this.worldData.clear();
+		this.cache.clear();
+		if(this.parent != null) this.parent.delete();
 	}
 
 
 	@Override
 	public <T extends Persistent> T getData(int x, int y, int z) {
-		IChunkData chunkData = getChunkDataBlock(x, z);
+		IChunkData chunkData = this.getChunkDataBlock(x, z);
 		return chunkData.getData(x & 15, y, z & 15);
 	}
 
 	@Override
 	public <T extends Persistent> void setData(T data, int x, int y, int z) {
-		IChunkData chunkData = getChunkDataBlock(x, z);
+		IChunkData chunkData = this.getChunkDataBlock(x, z);
 		chunkData.setData(data, x & 15, y, z & 15);
 	}
 
 	@Override
 	public <T extends Persistent> T removeData(int x, int y, int z) {
-		return getChunkDataBlock(x, z).removeData(x & 15, y, z & 15);
+		return this.getChunkDataBlock(x, z).removeData(x & 15, y, z & 15);
 	}
 
 	/**
@@ -102,8 +100,8 @@ public class WorldStorage implements IWorldStorage {
 	 * @return
 	 */
 	protected IChunkData getChunkDataBlock(int x, int z) {
-		Point chunk = getChunk(x, z);
-		return getChunkData(chunk.x, chunk.y);
+		Point chunk = this.getChunk(x, z);
+		return this.getChunkData(chunk.x, chunk.y);
 	}
 
 	/**
@@ -113,16 +111,16 @@ public class WorldStorage implements IWorldStorage {
 	 * @return
 	 */
 	protected IChunkData getChunkData(int x, int z) {
-		long key = getKey(x, z);
-		if(worldData.containsKey(key))
-			return worldData.get(key);
-		else if(cache.containsKey(key)) {
+		long key = this.getKey(x, z);
+		if(this.worldData.containsKey(key))
+			return this.worldData.get(key);
+		else if(this.cache.containsKey(key)) {
 			IChunkData data;
-			worldData.put(key, data = cache.remove(key));
+			this.worldData.put(key, data = this.cache.remove(key));
 			return data;
 		} else {
 			IChunkData data;
-			worldData.put(key, data = newChunk.apply(new Point(x, z)));
+			this.worldData.put(key, data = this.newChunk.apply(new Point(x, z)));
 			return data;
 		}
 	}
@@ -157,7 +155,7 @@ public class WorldStorage implements IWorldStorage {
 	}
 
 	public int getCacheSize() {
-		return cacheSize;
+		return this.cacheSize;
 	}
 
 	public void setCacheSize(int cacheSize) {

@@ -38,8 +38,8 @@ public class ChunkData implements IChunkData {
 		this.data = data;
 		this.point = point;
 		this.world = world;
-		if (file.exists()) {
-			try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+		if (this.file.exists()) {
+			try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(this.file)))) {
 				if (dis.readInt() != point.x || dis.readInt() != point.y)
 					throw new FileCorruptedException("Chunk does not belong to the correct point!");
 				int len = dis.readInt();
@@ -65,7 +65,7 @@ public class ChunkData implements IChunkData {
 
 	@Override
 	public <T extends Persistent> T getData(int x, int y, int z) {
-		return (T) data.get(convert(x, y, z));
+		return (T) this.data.get(convert(x, y, z));
 	}
 
 	@Override
@@ -76,39 +76,39 @@ public class ChunkData implements IChunkData {
 
 	@Override
 	public void forEach(BiConsumer<Location, Persistent> consumer) {
-		data.forEach((s, t) -> consumer.accept(getLocation(s, world, point.x, point.y), t));
+		this.data.forEach((s, t) -> consumer.accept(getLocation(s, this.world, this.point.x, this.point.y), t));
 	}
 
 	@Override
 	public void save(boolean write) {
-		if (data.size() != 0) { // if chonk has data
-			File parent = file.getParentFile();
+		if (this.data.size() != 0) { // if chonk has data
+			File parent = this.file.getParentFile();
 			if (!parent.exists() && !parent.mkdirs()) // if parent dir does not exist, make new
 				throw new FileCorruptedException(parent + " was unable to be created!"); // fail
-			try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) { // open sesemeemee
-				dos.writeInt(point.x); // x and y of chunk
-				dos.writeInt(point.y);
+			try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(this.file)))) { // open sesemeemee
+				dos.writeInt(this.point.x); // x and y of chunk
+				dos.writeInt(this.point.y);
 
-				dos.writeInt(data.size()); // size of data
+				dos.writeInt(this.data.size()); // size of data
 
 
-				for (Short2ObjectMap.Entry<Persistent> pair : data.short2ObjectEntrySet()) { // data in file
+				for (Short2ObjectMap.Entry<Persistent> pair : this.data.short2ObjectEntrySet()) { // data in file
 					Persistent entry = pair.getValue();
 					if (write) entry.close(); // clean entities
 					dos.writeShort(pair.getShortKey());
-					dos.writeInt(registry.getIntegerKey(entry)); // get persistent key thing
+					dos.writeInt(this.registry.getIntegerKey(entry)); // get persistent key thing
 					entry.writeTo(dos); // write to file
 				}
 			} catch (IOException e) {
-				throw new FileCorruptedException("Chunk file was unable to be saved : " + file, e); // fail
+				throw new FileCorruptedException("Chunk file was unable to be saved : " + this.file, e); // fail
 			}
-		} else if (file.exists() && !file.delete()) // if chonk has no data and there was data formerly associated with this chonk, delete it
-			throw new FileCorruptedException(file + " Chunk file was unable to be deleted!");
+		} else if (this.file.exists() && !this.file.delete()) // if chonk has no data and there was data formerly associated with this chonk, delete it
+			throw new FileCorruptedException(this.file + " Chunk file was unable to be deleted!");
 	}
 
 	@Override
 	public <T extends Persistent> T removeData(int x, int y, int z) {
-		Persistent persistent = data.remove(convert(x, y, z));
+		Persistent persistent = this.data.remove(convert(x, y, z));
 		if (persistent != null) persistent.close();
 		return (T) persistent;
 	}

@@ -76,7 +76,7 @@ public interface IBlockDatabase extends Listener {
 	 * @return the data at the given location
 	 */
 	default <T extends Persistent> T getData(Location location) {
-		return getData(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		return this.getData(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 	}
 
 	/**
@@ -86,7 +86,7 @@ public interface IBlockDatabase extends Listener {
 	 * @param <T> the datatype entered
 	 */
 	default <T extends Persistent> void setData(T data, Location location) {
-		setData(data, location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		this.setData(data, location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 	}
 
 	/**
@@ -96,7 +96,7 @@ public interface IBlockDatabase extends Listener {
 	 * @return
 	 */
 	default <T extends Persistent> T removeData(Location location) {
-		return removeData(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		return this.removeData(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 	}
 
 

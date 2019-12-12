@@ -47,52 +47,52 @@ public class BlockDatabase implements IBlockDatabase {
 
 	@Override
 	public void save(boolean _final) {
-		serverData.forEach((u, i) -> i.saveAll(_final));
+		this.serverData.forEach((u, i) -> i.saveAll(_final));
 	}
 
 	@Override
 	public void init() {
-		Bukkit.getWorlds().forEach(w -> {for (Chunk chunk : w.getLoadedChunks()) chunkLoad(new ChunkLoadEvent(chunk, false));});
+		Bukkit.getWorlds().forEach(w -> {for (Chunk chunk : w.getLoadedChunks()) this.chunkLoad(new ChunkLoadEvent(chunk, false));});
 	}
 
 	@Override
 	public void clear() {
-		serverData.forEach((u, w) -> w.clear());
+		this.serverData.forEach((u, w) -> w.clear());
 	}
 
 	@Override
 	public <T extends Persistent> T getData(World world, int x, int y, int z) {
-		return getWorld(world).getData(x, y, z);
+		return this.getWorld(world).getData(x, y, z);
 	}
 
 	@Override
 	public <T extends Persistent> void setData(T data, World world, int x, int y, int z) {
-		getWorld(world).setData(data, x, y, z);
+		this.getWorld(world).setData(data, x, y, z);
 	}
 
 	@Override
 	public <T extends Persistent> T removeData(World world, int x, int y, int z) {
-		return getWorld(world).removeData(x, y, z);
+		return this.getWorld(world).removeData(x, y, z);
 	}
 
 	@Override
 	public void forEach(BiConsumer<Location, Persistent> data) {
-		serverData.forEach((u, w) -> w.forEach(data));
+		this.serverData.forEach((u, w) -> w.forEach(data));
 	}
 
 	protected IWorldStorage getWorld(World world) {
-		return serverData.computeIfAbsent(world.getUID(), (u) -> newWorldStorage.apply(persistenceRegistry, world));
+		return this.serverData.computeIfAbsent(world.getUID(), (u) -> this.newWorldStorage.apply(this.persistenceRegistry, world));
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void chunkLoad(ChunkLoadEvent event) {
 		Chunk chunk = event.getChunk();
-		getWorld(event.getWorld()).loadChunk(chunk.getX(), chunk.getZ());
+		this.getWorld(event.getWorld()).loadChunk(chunk.getX(), chunk.getZ());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void chunkUnload(ChunkUnloadEvent event) {
 		Chunk chunk = event.getChunk();
-		getWorld(event.getWorld()).unloadChunk(chunk.getX(), chunk.getZ());
+		this.getWorld(event.getWorld()).unloadChunk(chunk.getX(), chunk.getZ());
 	}
 }

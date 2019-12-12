@@ -21,19 +21,24 @@ public class PersistenceRegistry implements IRegisterableRegistry {
 
 
 
-	public PersistenceRegistry(File file) throws IOException, InvalidConfigurationException {
+	public PersistenceRegistry(File file) {
 		this.file = file;
+
 		if (file != null) {
 			if(file.exists()) {
-				YamlConfiguration configuration = new YamlConfiguration();
-				configuration.load(file);
-				configuration.getKeys(false).forEach(s -> {
-					try {
-						ids.put((Class<? extends Persistent>) Class.forName(s.replace('!', '.')), configuration.getInt(s));
-					} catch (ClassNotFoundException e) {
-						throw new RuntimeException("A class was not found", e);
-					}
-				});
+				try {
+					YamlConfiguration configuration = new YamlConfiguration();
+					configuration.load(file);
+					configuration.getKeys(false).forEach(s -> {
+						try {
+							this.ids.put((Class<? extends Persistent>) Class.forName(s.replace('!', '.')), configuration.getInt(s));
+						} catch (ClassNotFoundException e) {
+							throw new RuntimeException("A class was not found", e);
+						}
+					});
+				} catch (Throwable throwable) {
+					throw new RuntimeException(throwable);
+				}
 			} else
 				System.out.println("Persistence Registry was initialized with empty file, this should ideally only happen the first time you launch the server");
 		} else
@@ -46,22 +51,22 @@ public class PersistenceRegistry implements IRegisterableRegistry {
 	 *
 	 * @throws IOException
 	 */
+	@Override
 	public void save() throws IOException {
 		YamlConfiguration configuration = new YamlConfiguration();
-		ids.forEach((c, i) -> configuration.set(c.getName().replace('.', '!'), i));
-		configuration.save(file);
+		this.ids.forEach((c, i) -> configuration.set(c.getName().replace('.', '!'), i));
+		configuration.save(this.file);
 	}
 
 	@Override
 	public void iterate(Consumer<Integer> idIterator) {
-		ids.forEach((c, i) -> idIterator.accept(i));
+		this.ids.forEach((c, i) -> idIterator.accept(i));
 	}
 
 	@Override
 	public void register(Class<? extends Persistent> _class, Supplier<Persistent> instantiation) {
-		if(!ids.containsKey(_class))
-			ids.put(_class, firstOpen());
-		instantiators.put(_class, instantiation);
+		if(!this.ids.containsKey(_class)) this.ids.put(_class, this.firstOpen());
+		this.instantiators.put(_class, instantiation);
 	}
 
 	/**
@@ -70,7 +75,7 @@ public class PersistenceRegistry implements IRegisterableRegistry {
 	 * @return
 	 */
 	private int firstOpen() {
-		Object[] set = ids.values().toArray();
+		Object[] set = this.ids.values().toArray();
 		for (int i = 0; i < set.length; i++)
 			if (((Integer) set[i]) != i) return i;
 		return set.length;
@@ -78,17 +83,17 @@ public class PersistenceRegistry implements IRegisterableRegistry {
 
 	@Override
 	public int getIntegerKey(Persistent persistant) {
-		return ids.get(persistant.getClass());
+		return this.ids.get(persistant.getClass());
 	}
 
 	@Override
 	public Persistent newInstance(int id) {
-		return instantiators.getOrDefault(ids.inverse().get(id), () -> null).get();
+		return this.instantiators.getOrDefault(this.ids.inverse().get(id), () -> null).get();
 	}
 
 	@Override
 	public <T extends Persistent> T newInstance(Class<T> _class) {
-		return (T) instantiators.get(_class).get();
+		return (T) this.instantiators.get(_class).get();
 	}
 
 

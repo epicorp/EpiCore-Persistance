@@ -22,7 +22,7 @@ public interface IRegisterableRegistry extends IPersistenceRegistry {
 		try {
 			Constructor<Persistent> constructor = (Constructor<Persistent>) _class.getConstructor();
 			constructor.setAccessible(true);
-			register(_class, () -> {
+			this.register(_class, () -> {
 				try {
 					return constructor.newInstance();
 				} catch (ReflectiveOperationException e) {

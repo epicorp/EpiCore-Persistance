@@ -29,14 +29,14 @@ public interface Persistent {
 
 	default byte[] saveAsByteArray() throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		writeTo(new DataOutputStream(baos));
+		this.writeTo(new DataOutputStream(baos));
 		return baos.toByteArray();
 	}
 
 	default Persistent cloneData() {
 		try {
-			Persistent clone = getClass().newInstance();
-			clone.load(new DataInputStream(new ByteArrayInputStream(saveAsByteArray())));
+			Persistent clone = this.getClass().newInstance();
+			clone.load(new DataInputStream(new ByteArrayInputStream(this.saveAsByteArray())));
 			return clone;
 		} catch (InstantiationException | IllegalAccessException | IOException e) {
 			throw new RuntimeException(e);
